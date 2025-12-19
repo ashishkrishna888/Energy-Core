@@ -38,3 +38,4 @@ const waterLogSchema = new mongoose.Schema(
 
 module.exports = mongoose.model('WaterLog', waterLogSchema);
 
+
