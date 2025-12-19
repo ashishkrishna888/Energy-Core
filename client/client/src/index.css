@@ -1,3 +1,81 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-slate-800;
+  }
+  
+  body {
+    @apply antialiased;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-900/50;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700/50 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-600/70;
+  }
+
+  /* Device list specific scrollbar */
+  .device-list-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .device-list-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  .device-list-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-700/40 rounded-full;
+  }
+  
+  .device-list-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-600/60;
+  }
+}
+
+@layer utilities {
+  /* Custom animations */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
+  }
+  
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent;
+  }
+  
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-slate-900/80 backdrop-blur-xl border border-slate-800/50;
+  }
+  
+  /* Glow effect */
+  .glow-emerald {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+}

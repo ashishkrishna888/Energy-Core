@@ -13,6 +13,23 @@ const deviceSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    type: {
+      type: String,
+      enum: ['energy', 'water'],
+      default: 'energy'
+    },
+    consumption: {
+      type: Number,
+      default: 0.5 // kW for energy, L/min for water
+    },
+    isOn: {
+      type: Boolean,
+      default: false
+    },
+    isEco: {
+      type: Boolean,
+      default: false
+    },
     category: {
       type: String,
       enum: ['HVAC', 'LIGHTING', 'WATER_HEATER', 'OTHER'],
@@ -22,6 +39,7 @@ const deviceSchema = new mongoose.Schema(
       type: String,
       default: 'Unknown'
     },
+    // Legacy fields for backward compatibility (computed on save)
     status: {
       type: String,
       enum: ['ON', 'OFF'],
@@ -30,6 +48,10 @@ const deviceSchema = new mongoose.Schema(
     currentPowerKw: {
       type: Number,
       default: 0
+    },
+    ecoMode: {
+      type: Boolean,
+      default: false
     },
     lastToggledAt: {
       type: Date
@@ -49,5 +71,23 @@ const deviceSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Pre-save middleware to sync legacy fields with new fields
+deviceSchema.pre('save', function(next) {
+  // Sync status with isOn
+  this.status = this.isOn ? 'ON' : 'OFF';
+  
+  // Sync ecoMode with isEco
+  this.ecoMode = this.isEco;
+  
+  // Calculate currentPowerKw based on isOn and isEco
+  if (this.isOn) {
+    this.currentPowerKw = this.isEco ? this.consumption * 0.8 : this.consumption;
+  } else {
+    this.currentPowerKw = 0;
+  }
+  
+  next();
+});
 
 module.exports = mongoose.model('Device', deviceSchema);

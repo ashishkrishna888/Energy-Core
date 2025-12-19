@@ -4,11 +4,12 @@ const cors = require('cors');
 const morgan = require('morgan');
 require('dotenv').config();
 
-// Route imports (we'll create these soon)
+// Route imports
 const authRoutes = require('./routes/authRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const energyRoutes = require('./routes/energyRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/energy', energyRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // 404 fallback
 app.use((req, res) => {

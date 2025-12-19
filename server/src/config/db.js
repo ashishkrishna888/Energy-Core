@@ -8,6 +8,10 @@ const connectDB = async () => {
     console.log(`✅ MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
+    console.error('\n💡 Make sure MongoDB is running:');
+    console.error('   - If using local MongoDB: Start the MongoDB service');
+    console.error('   - If using MongoDB Atlas: Check your connection string in .env');
+    console.error('   - Connection URI:', process.env.MONGO_URI);
     process.exit(1);
   }
 };
