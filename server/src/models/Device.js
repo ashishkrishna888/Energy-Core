@@ -73,7 +73,7 @@ const deviceSchema = new mongoose.Schema(
 );
 
 // Pre-save middleware to sync legacy fields with new fields
-deviceSchema.pre('save', function(next) {
+deviceSchema.pre('save', async function() {
   // Sync status with isOn
   this.status = this.isOn ? 'ON' : 'OFF';
   
@@ -86,8 +86,6 @@ deviceSchema.pre('save', function(next) {
   } else {
     this.currentPowerKw = 0;
   }
-  
-  next();
 });
 
 module.exports = mongoose.model('Device', deviceSchema);
