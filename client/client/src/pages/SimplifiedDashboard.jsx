@@ -116,6 +116,14 @@ const SimplifiedDashboard = () => {
   // Toggle device ON/OFF - Real API call
   const toggleDevice = async (id) => {
     try {
+      // Check if token exists
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setStatusMsg({ type: 'error', text: '❌ Please login to toggle devices' });
+        setTimeout(() => setStatusMsg({ type: '', text: '' }), 5000);
+        return;
+      }
+
       const response = await api.patch(`/devices/${id}/toggle`);
       // Update device in state with server response
       setDevices((prev) => 
@@ -159,13 +167,45 @@ const SimplifiedDashboard = () => {
         console.error("Error refreshing history:", historyError.message);
       }
     } catch (error) {
-      console.error("Toggle device error:", error.message);
+      console.error("Toggle device error:", error);
+      
+      // Show user-friendly error message
+      let errorMessage = "❌ Failed to toggle device";
+      
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.status === 401) {
+          errorMessage = "❌ Session expired. Please login again";
+        } else if (error.response.status === 404) {
+          errorMessage = "❌ Device not found";
+        } else if (error.response.status === 500) {
+          errorMessage = "❌ Server error. Please try again";
+        } else {
+          errorMessage = error.response.data?.message || `❌ Error: ${error.response.status}`;
+        }
+      } else if (error.request) {
+        // Request made but no response (network error)
+        errorMessage = "❌ Cannot connect to server. Is the backend running?";
+      } else {
+        // Something else happened
+        errorMessage = `❌ Error: ${error.message}`;
+      }
+      
+      setStatusMsg({ type: 'error', text: errorMessage });
+      setTimeout(() => setStatusMsg({ type: '', text: '' }), 5000);
     }
   };
   
   // Toggle Eco Mode - Real API call
   const toggleEcoMode = async (id) => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setStatusMsg({ type: 'error', text: '❌ Please login to toggle eco mode' });
+        setTimeout(() => setStatusMsg({ type: '', text: '' }), 5000);
+        return;
+      }
+
       const response = await api.patch(`/devices/${id}/eco`);
       // Update device in state with server response
       setDevices((prev) => 
@@ -174,7 +214,17 @@ const SimplifiedDashboard = () => {
         )
       );
     } catch (error) {
-      console.error("Toggle eco mode error:", error.message);
+      console.error("Toggle eco mode error:", error);
+      
+      let errorMessage = "❌ Failed to toggle eco mode";
+      if (error.response?.status === 401) {
+        errorMessage = "❌ Session expired. Please login again";
+      } else if (error.request) {
+        errorMessage = "❌ Cannot connect to server";
+      }
+      
+      setStatusMsg({ type: 'error', text: errorMessage });
+      setTimeout(() => setStatusMsg({ type: '', text: '' }), 5000);
     }
   };
 
@@ -860,6 +910,22 @@ const SimplifiedDashboard = () => {
                 <div className="text-xs text-slate-400 font-medium">Live</div>
               </div>
             </div>
+            
+            {/* Error Message Banner */}
+            {statusMsg.text && (
+              <div
+                className={`mb-3 px-4 py-3 rounded-lg border transition-all duration-300 ${
+                  statusMsg.type === 'success'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                    : 'bg-red-500/10 border-red-500/30 text-red-400'
+                }`}
+              >
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  {statusMsg.text}
+                </div>
+              </div>
+            )}
+            
             <DeviceList 
               devices={devices} 
               onDeviceUpdated={toggleDevice}
