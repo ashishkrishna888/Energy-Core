@@ -390,6 +390,26 @@ npm run lint     # Run ESLint
 
 ## 🐛 Troubleshooting
 
+### "Request failed with status code 500" Error
+This usually means the backend server encountered an error. Check the following:
+
+1. **Missing `.env` file**: 
+   - Create a `.env` file in the `server/` directory
+   - Add required variables: `MONGO_URI`, `JWT_SECRET`, `PORT`
+   - See [Environment Variables](#-environment-variables) section above
+
+2. **MongoDB Connection**:
+   - Ensure MongoDB is running (local) or Atlas connection string is correct
+   - Check server console for MongoDB connection errors
+
+3. **JWT Secret Missing**:
+   - If `JWT_SECRET` is not set, authentication will fail
+   - Generate a secure key: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+
+4. **Check Server Logs**:
+   - Look at the server console output for detailed error messages
+   - The improved error handling now logs full error stacks
+
 ### MongoDB Connection Issues
 - **Local MongoDB**: Ensure MongoDB service is running (`mongod`)
 - **MongoDB Atlas**: Verify connection string in `.env` and network access settings
@@ -402,6 +422,12 @@ npm run lint     # Run ESLint
 ### CORS Errors
 - Ensure backend CORS is enabled (already configured in `server/src/app.js`)
 - Verify `VITE_API_BASE_URL` matches your backend URL
+
+### Device Toggle Not Working
+- Check server console for error messages
+- Verify `.env` file exists and has all required variables
+- Ensure MongoDB is connected and accessible
+- Check that user is authenticated (JWT token is valid)
 
 ---
 

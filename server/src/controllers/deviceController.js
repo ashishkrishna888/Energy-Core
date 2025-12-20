@@ -142,7 +142,17 @@ const toggleDevice = async (req, res) => {
     res.json(device);
   } catch (error) {
     console.error('Toggle device error:', error.message);
-    res.status(500).json({ message: 'Error toggling device' });
+    console.error('Full error stack:', error.stack);
+    console.error('Error details:', {
+      deviceId: req.params.id,
+      userId: req.user?._id,
+      errorName: error.name,
+      errorMessage: error.message
+    });
+    res.status(500).json({ 
+      message: 'Error toggling device',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
