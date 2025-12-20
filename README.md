@@ -426,4 +426,4 @@ This project is created for educational purposes (University Final Project).
 ---
 
 **Version:** 1.0.0  
-**Last Updated:** December 2024
+**Last Updated:** December 2025
