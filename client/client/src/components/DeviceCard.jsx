@@ -8,6 +8,7 @@ const DeviceCard = ({ device, onToggle, onEcoModeToggle, onDelete }) => {
   const isOn = device.isOn !== undefined ? device.isOn : device.status === "ON";
   const ecoMode = device.isEco !== undefined ? device.isEco : device.ecoMode || false;
   const powerKw = device.currentPowerKw || device.consumption || 0;
+  const consumption = device.consumption || 0; // Actual consumption rate from device
   
   const handleToggle = () => {
     if (onToggle) {
@@ -52,11 +53,12 @@ const DeviceCard = ({ device, onToggle, onEcoModeToggle, onDelete }) => {
   };
 
   const getConsumptionRate = () => {
-    if (isWaterDevice()) {
-      // Mock water consumption rate (L/min) - in real app, this would come from device data
-      return isOn ? `${(Math.random() * 10 + 5).toFixed(1)}L/min` : "0L/min";
+    if (isWaterDevice() || device.type === 'water') {
+      // Show actual consumption rate from device data
+      return isOn ? `${consumption.toFixed(1)}L/min` : "0L/min";
     } else {
-      return isOn ? `${powerKw.toFixed(2)}kW` : "0kW";
+      // For energy devices, show current power when on, consumption rate when off
+      return isOn ? `${powerKw.toFixed(2)}kW` : `${consumption.toFixed(2)}kW`;
     }
   };
 

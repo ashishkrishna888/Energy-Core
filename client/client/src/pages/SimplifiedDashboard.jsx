@@ -31,6 +31,7 @@ const SimplifiedDashboard = () => {
   // Smart Devices form state
   const [newDeviceName, setNewDeviceName] = useState("");
   const [newDeviceType, setNewDeviceType] = useState("energy");
+  const [newDeviceConsumption, setNewDeviceConsumption] = useState("0.5"); // Default for energy
   const [isAdding, setIsAdding] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   
@@ -582,6 +583,14 @@ const SimplifiedDashboard = () => {
         return;
       }
 
+      // Validate consumption rate
+      const consumptionValue = parseFloat(newDeviceConsumption);
+      if (isNaN(consumptionValue) || consumptionValue <= 0) {
+        setStatusMsg({ type: 'error', text: `❌ Please enter a valid consumption rate (${newDeviceType === "water" ? "L/min" : "kW"})` });
+        setTimeout(() => setStatusMsg({ type: '', text: '' }), 3000);
+        return;
+      }
+
       setIsAdding(true);
       setStatusMsg({ type: '', text: '' }); // Clear previous messages
       
@@ -589,7 +598,7 @@ const SimplifiedDashboard = () => {
         await createDevice({
           name: newDeviceName.trim(),
           type: newDeviceType,
-          consumption: newDeviceType === "water" ? 8.5 : 0.5, // Default consumption
+          consumption: consumptionValue,
           category: "OTHER",
           location: "Unknown"
         });
@@ -598,6 +607,7 @@ const SimplifiedDashboard = () => {
         setStatusMsg({ type: 'success', text: '✅ Device connected successfully!' });
         setNewDeviceName("");
         setNewDeviceType("energy");
+        setNewDeviceConsumption("");
         
         // Clear success message after 3 seconds
         setTimeout(() => setStatusMsg({ type: '', text: '' }), 3000);
@@ -648,7 +658,12 @@ const SimplifiedDashboard = () => {
                 </label>
                 <select
                   value={newDeviceType}
-                  onChange={(e) => setNewDeviceType(e.target.value)}
+                  onChange={(e) => {
+                    const newType = e.target.value;
+                    setNewDeviceType(newType);
+                    // Set default consumption when type changes
+                    setNewDeviceConsumption(newType === "water" ? "8.5" : "0.5");
+                  }}
                   className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                   disabled={isAdding}
                 >
@@ -656,9 +671,33 @@ const SimplifiedDashboard = () => {
                   <option value="water">Water</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Consumption Rate
+                  <span className="text-xs text-slate-400 ml-2">
+                    ({newDeviceType === "water" ? "Liters per minute" : "kW (kilowatts)"})
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  value={newDeviceConsumption}
+                  onChange={(e) => setNewDeviceConsumption(e.target.value)}
+                  placeholder={newDeviceType === "water" ? "e.g., 8.5 L/min" : "e.g., 2.5 kW"}
+                  className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  disabled={isAdding}
+                  required
+                />
+                <p className="mt-1 text-xs text-slate-400">
+                  {newDeviceType === "water" 
+                    ? "Typical: 5-10 L/min for faucets, 8-15 L/min for showers"
+                    : "Typical: 0.1-0.5 kW for lights, 1-4 kW for AC units"}
+                </p>
+              </div>
               <button
                 type="submit"
-                disabled={isAdding || !newDeviceName.trim()}
+                disabled={isAdding || !newDeviceName.trim() || !newDeviceConsumption.trim()}
                 className="w-full px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" />

@@ -8,7 +8,8 @@
     "start": "node ./src/server.js",
     "seed:devices": "node src/seed/seedDevices.js",
     "seed:history": "node src/seed/seedHistory.js",
-    "clear:history": "node src/seed/clearHistory.js"
+    "clear:history": "node src/seed/clearHistory.js",
+    "clear:today-energy": "node src/seed/clearTodayEnergy.js"
   },
   "keywords": [],
   "author": "",
