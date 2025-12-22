@@ -31,7 +31,6 @@ const SimplifiedDashboard = () => {
   // Smart Devices form state
   const [newDeviceName, setNewDeviceName] = useState("");
   const [newDeviceType, setNewDeviceType] = useState("energy");
-  const [newDeviceConsumption, setNewDeviceConsumption] = useState("0.5"); // Default for energy
   const [isAdding, setIsAdding] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   
@@ -117,14 +116,6 @@ const SimplifiedDashboard = () => {
   // Toggle device ON/OFF - Real API call
   const toggleDevice = async (id) => {
     try {
-      // Check if token exists
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setStatusMsg({ type: 'error', text: '❌ Please login to toggle devices' });
-        setTimeout(() => setStatusMsg({ type: '', text: '' }), 5000);
-        return;
-      }
-
       const response = await api.patch(`/devices/${id}/toggle`);
       // Update device in state with server response
       setDevices((prev) => 
@@ -168,45 +159,13 @@ const SimplifiedDashboard = () => {
         console.error("Error refreshing history:", historyError.message);
       }
     } catch (error) {
-      console.error("Toggle device error:", error);
-      
-      // Show user-friendly error message
-      let errorMessage = "❌ Failed to toggle device";
-      
-      if (error.response) {
-        // Server responded with error status
-        if (error.response.status === 401) {
-          errorMessage = "❌ Session expired. Please login again";
-        } else if (error.response.status === 404) {
-          errorMessage = "❌ Device not found";
-        } else if (error.response.status === 500) {
-          errorMessage = "❌ Server error. Please try again";
-        } else {
-          errorMessage = error.response.data?.message || `❌ Error: ${error.response.status}`;
-        }
-      } else if (error.request) {
-        // Request made but no response (network error)
-        errorMessage = "❌ Cannot connect to server. Is the backend running?";
-      } else {
-        // Something else happened
-        errorMessage = `❌ Error: ${error.message}`;
-      }
-      
-      setStatusMsg({ type: 'error', text: errorMessage });
-      setTimeout(() => setStatusMsg({ type: '', text: '' }), 5000);
+      console.error("Toggle device error:", error.message);
     }
   };
   
   // Toggle Eco Mode - Real API call
   const toggleEcoMode = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setStatusMsg({ type: 'error', text: '❌ Please login to toggle eco mode' });
-        setTimeout(() => setStatusMsg({ type: '', text: '' }), 5000);
-        return;
-      }
-
       const response = await api.patch(`/devices/${id}/eco`);
       // Update device in state with server response
       setDevices((prev) => 
@@ -215,17 +174,7 @@ const SimplifiedDashboard = () => {
         )
       );
     } catch (error) {
-      console.error("Toggle eco mode error:", error);
-      
-      let errorMessage = "❌ Failed to toggle eco mode";
-      if (error.response?.status === 401) {
-        errorMessage = "❌ Session expired. Please login again";
-      } else if (error.request) {
-        errorMessage = "❌ Cannot connect to server";
-      }
-      
-      setStatusMsg({ type: 'error', text: errorMessage });
-      setTimeout(() => setStatusMsg({ type: '', text: '' }), 5000);
+      console.error("Toggle eco mode error:", error.message);
     }
   };
 
@@ -583,14 +532,6 @@ const SimplifiedDashboard = () => {
         return;
       }
 
-      // Validate consumption rate
-      const consumptionValue = parseFloat(newDeviceConsumption);
-      if (isNaN(consumptionValue) || consumptionValue <= 0) {
-        setStatusMsg({ type: 'error', text: `❌ Please enter a valid consumption rate (${newDeviceType === "water" ? "L/min" : "kW"})` });
-        setTimeout(() => setStatusMsg({ type: '', text: '' }), 3000);
-        return;
-      }
-
       setIsAdding(true);
       setStatusMsg({ type: '', text: '' }); // Clear previous messages
       
@@ -598,7 +539,7 @@ const SimplifiedDashboard = () => {
         await createDevice({
           name: newDeviceName.trim(),
           type: newDeviceType,
-          consumption: consumptionValue,
+          consumption: newDeviceType === "water" ? 8.5 : 0.5, // Default consumption
           category: "OTHER",
           location: "Unknown"
         });
@@ -607,7 +548,6 @@ const SimplifiedDashboard = () => {
         setStatusMsg({ type: 'success', text: '✅ Device connected successfully!' });
         setNewDeviceName("");
         setNewDeviceType("energy");
-        setNewDeviceConsumption("");
         
         // Clear success message after 3 seconds
         setTimeout(() => setStatusMsg({ type: '', text: '' }), 3000);
@@ -658,12 +598,7 @@ const SimplifiedDashboard = () => {
                 </label>
                 <select
                   value={newDeviceType}
-                  onChange={(e) => {
-                    const newType = e.target.value;
-                    setNewDeviceType(newType);
-                    // Set default consumption when type changes
-                    setNewDeviceConsumption(newType === "water" ? "8.5" : "0.5");
-                  }}
+                  onChange={(e) => setNewDeviceType(e.target.value)}
                   className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                   disabled={isAdding}
                 >
@@ -671,33 +606,9 @@ const SimplifiedDashboard = () => {
                   <option value="water">Water</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Consumption Rate
-                  <span className="text-xs text-slate-400 ml-2">
-                    ({newDeviceType === "water" ? "Liters per minute" : "kW (kilowatts)"})
-                  </span>
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  value={newDeviceConsumption}
-                  onChange={(e) => setNewDeviceConsumption(e.target.value)}
-                  placeholder={newDeviceType === "water" ? "e.g., 8.5 L/min" : "e.g., 2.5 kW"}
-                  className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                  disabled={isAdding}
-                  required
-                />
-                <p className="mt-1 text-xs text-slate-400">
-                  {newDeviceType === "water" 
-                    ? "Typical: 5-10 L/min for faucets, 8-15 L/min for showers"
-                    : "Typical: 0.1-0.5 kW for lights, 1-4 kW for AC units"}
-                </p>
-              </div>
               <button
                 type="submit"
-                disabled={isAdding || !newDeviceName.trim() || !newDeviceConsumption.trim()}
+                disabled={isAdding || !newDeviceName.trim()}
                 className="w-full px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" />
@@ -949,22 +860,6 @@ const SimplifiedDashboard = () => {
                 <div className="text-xs text-slate-400 font-medium">Live</div>
               </div>
             </div>
-            
-            {/* Error Message Banner */}
-            {statusMsg.text && (
-              <div
-                className={`mb-3 px-4 py-3 rounded-lg border transition-all duration-300 ${
-                  statusMsg.type === 'success'
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                    : 'bg-red-500/10 border-red-500/30 text-red-400'
-                }`}
-              >
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  {statusMsg.text}
-                </div>
-              </div>
-            )}
-            
             <DeviceList 
               devices={devices} 
               onDeviceUpdated={toggleDevice}
